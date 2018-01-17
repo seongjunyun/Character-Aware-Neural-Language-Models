@@ -17,7 +17,7 @@ batch_size = 20
 max_len = dic['max_len']+2
 embed_dim = 15
 kernels = [1,2,3,4,5,6]
-out_channels = 30
+out_channels = 25
 seq_len = 35
 hidden_size = 500
 learning_rate = 1.0
@@ -47,7 +47,11 @@ def eval(seq_len,val_data,val_label,model,h):
     for j in range(0,val_data.size(1)-seq_len,seq_len):
 
         val_inputs = to_var(val_data[:,j:j+seq_len,:])
-        val_targets = to_var(val_label[:,(j+1):(j+1)+seq_len]).contiguous()
+        val_targets = to_var(val_label[:,(j+1):(j+1)+seq_len])
+
+        model.zero_grad()
+
+        h = [state.detach() for state in h]
 
         output,h = model(val_inputs,h)
         loss = criterion(output,val_targets.view(-1))
@@ -82,8 +86,6 @@ hidden_state = (to_var(torch.zeros(2,batch_size,hidden_size)),to_var(torch.zeros
 #validate
 test_loss = eval(seq_len,test_data,test_label,model,hidden_state)
 test_loss = np.exp(test_loss)
-
-print(test_loss)
             
                   
 

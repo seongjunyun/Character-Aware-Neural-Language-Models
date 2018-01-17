@@ -47,18 +47,19 @@ class LM(nn.Module):
         self.cnns = []
         for kernel in kernels:
             self.cnns.append(nn.Sequential(
-                    nn.Conv2d(1,out_channels,kernel_size=(kernel,embed_dim)),
+                    nn.Conv2d(1,out_channels*kernel,kernel_size=(kernel,embed_dim)),
                     nn.Tanh(),
                     nn.MaxPool2d((max_len-kernel+1,1))))
 
         self.cnns = nn.ModuleList(self.cnns)
 
         #highway layer
-        self.highway = HighwayNetwork(out_channels*len(kernels))
-        self.highway2 = HighwayNetwork(out_channels*len(kernels))
+        input_size = np.asscalar(out_channels*np.sum(kernels)) 
+        self.highway = HighwayNetwork(input_size)
+        self.highway2 = HighwayNetwork(input_size)
 
         #lstm layer
-        self.lstm = nn.LSTM(out_channels*len(kernels),hidden_size,2,batch_first=True,dropout=0.5)
+        self.lstm = nn.LSTM(input_size,hidden_size,2,batch_first=True,dropout=0.5)
 
         #output layer
         self.linear = nn.Sequential(
